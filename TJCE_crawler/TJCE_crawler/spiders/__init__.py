@@ -88,7 +88,7 @@ class TjceCrawler(CrawlSpider):
         processo['lista_partes_processo'] = partes
         processo['lista_movimentacoes'] = movimentacoes
         processo['valor_acao'] = valor_acao.replace(' ', '') if valor_acao is not None else ''
-
+        processo['data_distribuicao'] = ''
         return processo
 
     def build_partes_processo(self, response):

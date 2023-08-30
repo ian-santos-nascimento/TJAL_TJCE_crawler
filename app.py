@@ -40,9 +40,28 @@ def consultar():
                 items.append(item)
             except queue.Empty:
                 break
-        return jsonify(
-             items  # Include the scraped items in the response
-        )
+
+
+        formatted_items = []
+        for item in items:
+            formatted_item = {
+                "numero_processo": item['numero_processo'],
+                "tribunal": item['tribunal'],
+                "area": item['area'],
+                "classeProcesso": item['classeProcesso'],
+                "data_distribuicao": item['data_distribuicao'],
+                "juiz": item['juiz'],
+                "valor_acao": item['valor_acao'],
+                "lista_partes_processo": item['lista_partes_processo'],
+                "lista_movimentacoes": item['lista_movimentacoes'],
+                "grau": item['grau'],
+
+            }
+            formatted_items.append(formatted_item)
+
+        return jsonify(formatted_items)
+
+
     except Exception as e:
         error_message = str(e)
         return jsonify({
@@ -54,6 +73,7 @@ def consultar():
 def initilize_tjal_crawler(queue, numero_processo):
     def collect_items(item):
         print("Adding item to queue:", item)
+        print('AREA' + item['area'])
         queue.put(item)
 
     process = CrawlerProcess(settings=get_project_settings())
@@ -64,8 +84,7 @@ def initilize_tjal_crawler(queue, numero_processo):
 
 def initilize_tjce_crawler(items_queue, numero_processo):
     def collect_items(item):
-        print("Adding item to queue:", item)
-        items_queue.put(item)
+        items_queue.append(dict(item))
 
     process = CrawlerProcess(settings=get_project_settings())
     crawler = process.create_crawler(TjceCrawler)

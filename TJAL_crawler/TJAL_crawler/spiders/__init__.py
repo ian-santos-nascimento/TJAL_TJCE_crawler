@@ -9,7 +9,7 @@ class TjalCrawler(CrawlSpider):
     name = 'TjalCrawler'
     rules = ([
         Rule(LinkExtractor(allow=r"cpopg/",
-                           deny=["/abrirDocumentoVinculadoMovimentacao", "jsessionid", "#liberarAutoPorSenha"]),
+                           deny=["/abrirDocumentoVinculadoMovimentacao", "jsessionid", "#liberarAutoPorSenha", '/open.do']),
              callback='parse_item'),
         Rule(LinkExtractor(allow=r"cposg5/search.do", deny="cposg5/show.do"), callback='get_codigo_processo')
     ])
@@ -20,7 +20,6 @@ class TjalCrawler(CrawlSpider):
         self.codigo_processo = codigo_processo
         self.start_urls = [
             f'https://www2.tjal.jus.br/cpopg/show.do?processo.foro={self.input_string[-4:]}&processo.numero={self.input_string}',
-            f'https://esaj.tjce.jus.br/cpopg/show.do?processo.foro={self.input_string[-4:]}&processo.numero={self.input_string}',
             f'https://www2.tjal.jus.br/cposg5/show.do?processo.codigo={self.codigo_processo}',
             f'https://www2.tjal.jus.br/cposg5/search.do?conversationId=&paginaConsulta=0&cbPesquisa=NUMPROC'
             f'&numeroDigitoAnoUnificado={self.input_string[:14]}&foroNumeroUnificado='
@@ -56,7 +55,7 @@ class TjalCrawler(CrawlSpider):
         valor_acao = response.css('[id="valorAcaoProcesso"]::text').get()
         partes = self.build_partes_processo(response)
         movimentacoes = self.build_movimentacoes_processo(response)
-        grau = '1º grau' if 'cpopg' in response.url else '2º grau'
+        grau = '1º grau'
 
         processo['numero_processo'] = numero_processo if numero_processo is not None else ''
         processo['tribunal'] = self.get_tribunal(response.url)
@@ -83,7 +82,7 @@ class TjalCrawler(CrawlSpider):
         valor_acao = response.css('[id="valorAcaoProcesso"] > span::text').get()
         partes = self.build_partes_processo(response)
         movimentacoes = self.build_movimentacoes_processo(response)
-        grau = '1º grau' if 'cpopg' in response.url else '2º grau'
+        grau = '2º grau'
 
         processo['numero_processo'] = numero_processo if numero_processo is not None else ''
         processo['tribunal'] = self.get_tribunal(response.url)
@@ -95,6 +94,7 @@ class TjalCrawler(CrawlSpider):
         processo['lista_partes_processo'] = partes
         processo['lista_movimentacoes'] = movimentacoes
         processo['valor_acao'] = valor_acao.replace(' ', '') if valor_acao is not None else ''
+        processo['data_distribuicao'] = ''
 
         return processo
 
@@ -118,26 +118,21 @@ class TjalCrawler(CrawlSpider):
         movimentacoes = {}
 
         for movimento in movimentacoes_selector:  # trs
-            data_movimentacao = movimento.css(".dataMovimentacao ::text").get()
-            descricao = movimento.css(".descricaoMovimentacao ::text").get()
-
-            if data_movimentacao is None:
-                data_movimentacao = movimento.css(".dataMovimentacaoProcesso ::text").get()
-                descricao = movimento.css(".descricaoMovimentacaoProcesso ::text").get()
+            data_movimentacao = movimento.css("td ::text").get()
+            descricao = movimento.css(":nth-child(3)::text").get().strip().replace("\n", "")
             if descricao == "":
-                descricao = self.get_url_documento(response, movimento)
+                descricao = self.get_url_documento(movimento)
             if data_movimentacao not in movimentacoes:
                 movimentacoes[data_movimentacao.strip()] = []
 
-            movimentacoes[data_movimentacao.strip()] = descricao.strip().replace("\n", "")
+            movimentacoes[data_movimentacao.strip()] = descricao
         return movimentacoes
 
-    def get_url_documento(self, response, movimento):
-        base_url = response.url[:27]
-        url = movimento.css(".descricaoMovimentacao > a::text").get().strip()
-        if movimento.css(".descricaoMovimentacao > a::attr(href)").get().strip() not in "#liberarAutoPorSenha":
-            url += "| documento: " + base_url + movimento.css(".descricaoMovimentacao > a::attr(href)").get().strip()
+    def get_url_documento(self, movimento):
+        url = movimento.css(":nth-child(3) > a::text").get()
+        if url is not None:
+            url = url.strip().replace("\n", "").replace("\t", "")
         return url
 
     def get_tribunal(self, url):
-        return url[12:16]
+        return url[13:17]
