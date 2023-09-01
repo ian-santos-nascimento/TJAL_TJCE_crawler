@@ -72,8 +72,6 @@ def consultar():
 
 def initilize_tjal_crawler(queue, numero_processo):
     def collect_items(item):
-        print("Adding item to queue:", item)
-        print('AREA' + item['area'])
         queue.put(item)
 
     process = CrawlerProcess(settings=get_project_settings())
@@ -84,7 +82,7 @@ def initilize_tjal_crawler(queue, numero_processo):
 
 def initilize_tjce_crawler(items_queue, numero_processo):
     def collect_items(item):
-        items_queue.append(dict(item))
+        items_queue.put(item)
 
     process = CrawlerProcess(settings=get_project_settings())
     crawler = process.create_crawler(TjceCrawler)

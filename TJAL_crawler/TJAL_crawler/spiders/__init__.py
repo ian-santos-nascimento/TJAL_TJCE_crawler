@@ -3,7 +3,7 @@ from scrapy.linkextractors import LinkExtractor
 from ..items import TjalCrawlerItem
 from scrapy import Request
 from urllib.parse import urlsplit
-
+from utils import get_tribunal
 
 class TjalCrawler(CrawlSpider):
     name = 'TjalCrawler'
@@ -58,7 +58,7 @@ class TjalCrawler(CrawlSpider):
         grau = '1º grau'
 
         processo['numero_processo'] = numero_processo if numero_processo is not None else ''
-        processo['tribunal'] = self.get_tribunal(response.url)
+        processo['tribunal'] = get_tribunal(response.url)
         processo['grau'] = grau
         processo['classeProcesso'] = classe if classe is not None else ''
         processo['area'] = area if area is not None else ''
@@ -85,7 +85,7 @@ class TjalCrawler(CrawlSpider):
         grau = '2º grau'
 
         processo['numero_processo'] = numero_processo if numero_processo is not None else ''
-        processo['tribunal'] = self.get_tribunal(response.url)
+        processo['tribunal'] = get_tribunal(response.url)
         processo['grau'] = grau
         processo['classeProcesso'] = classe if classe is not None else ''
         processo['area'] = area if area is not None else ''
@@ -105,7 +105,7 @@ class TjalCrawler(CrawlSpider):
         for parte in partes_selector:  # tds
             tipo_participacao = parte.css(".tipoDeParticipacao ::text").get().strip()
             nomes_selector = parte.css(".nomeParteEAdvogado ::text").getall()
-            nomes = [nome.strip() for nome in nomes_selector]
+            nomes = [nome.strip() for nome in nomes_selector if nome.strip()]
 
             if tipo_participacao not in partes:
                 partes[tipo_participacao] = []
@@ -133,6 +133,3 @@ class TjalCrawler(CrawlSpider):
         if url is not None:
             url = url.strip().replace("\n", "").replace("\t", "")
         return url
-
-    def get_tribunal(self, url):
-        return url[13:17]

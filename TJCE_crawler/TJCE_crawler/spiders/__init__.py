@@ -2,7 +2,7 @@ from scrapy.spiders import CrawlSpider, Rule
 from scrapy.linkextractors import LinkExtractor
 from ..items import TjceCrawlerItem
 from scrapy import Request
-
+from utils import get_tribunal
 
 class TjceCrawler(CrawlSpider):
     name = 'TjceCrawler'
@@ -50,7 +50,7 @@ class TjceCrawler(CrawlSpider):
         grau = '1º grau' if 'cpopg' in response.url else '2º grau'
 
         processo['numero_processo'] = numero_processo if numero_processo is not None else ''
-        processo['tribunal'] = self.get_tribunal(response.url)
+        processo['tribunal'] = get_tribunal(response.url)
         processo['url'] = response.url
         processo['grau'] = grau
         processo['classeProcesso'] = classe if classe is not None else ''
@@ -78,7 +78,7 @@ class TjceCrawler(CrawlSpider):
         grau = '1º grau' if 'cpopg' in response.url else '2º grau'
 
         processo['numero_processo'] = numero_processo if numero_processo is not None else ''
-        processo['tribunal'] = self.get_tribunal(response.url)
+        processo['tribunal'] = get_tribunal(response.url)
         processo['url'] = response.url
         processo['grau'] = grau
         processo['classeProcesso'] = classe if classe is not None else ''
@@ -126,9 +126,6 @@ class TjceCrawler(CrawlSpider):
         if url is not None:
             url = url.strip().replace("\n", "").replace("\t", "")
         return url
-
-    def get_tribunal(self, url):
-        return url[13:17]
 
     def closed(self, reason):
         if reason == 'no_page_found':
