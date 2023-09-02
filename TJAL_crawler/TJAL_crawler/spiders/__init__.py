@@ -1,26 +1,26 @@
-from scrapy.spiders import CrawlSpider, Rule
-from scrapy.linkextractors import LinkExtractor
-from ..items import TjalCrawlerItem
 from scrapy import Request
-from urllib.parse import urlsplit
+from scrapy.linkextractors import LinkExtractor
+from scrapy.spiders import CrawlSpider, Rule
 from utils import get_tribunal
+from ..items import TjalCrawlerItem
+
 
 class TjalCrawler(CrawlSpider):
     name = 'TjalCrawler'
     rules = ([
         Rule(LinkExtractor(allow=r"cpopg/",
-                           deny=["/abrirDocumentoVinculadoMovimentacao", "jsessionid", "#liberarAutoPorSenha", '/open.do']),
+                           deny=["/abrirDocumentoVinculadoMovimentacao", "jsessionid", "#liberarAutoPorSenha",
+                                 '/open.do']),
              callback='parse_item'),
         Rule(LinkExtractor(allow=r"cposg5/search.do", deny="cposg5/show.do"), callback='get_codigo_processo')
     ])
 
-    def __init__(self, input_string=None, codigo_processo = None, *a, **kw):
+    def __init__(self, input_string=None, codigo_processo=None, *a, **kw):
         super().__init__(*a, **kw)
         self.input_string = input_string
         self.codigo_processo = codigo_processo
         self.start_urls = [
             f'https://www2.tjal.jus.br/cpopg/show.do?processo.foro={self.input_string[-4:]}&processo.numero={self.input_string}',
-            f'https://www2.tjal.jus.br/cposg5/show.do?processo.codigo={self.codigo_processo}',
             f'https://www2.tjal.jus.br/cposg5/search.do?conversationId=&paginaConsulta=0&cbPesquisa=NUMPROC'
             f'&numeroDigitoAnoUnificado={self.input_string[:14]}&foroNumeroUnificado='
             f'{self.input_string[:-4]}&dePesquisaNuUnificado='
@@ -31,20 +31,18 @@ class TjalCrawler(CrawlSpider):
     }
 
     def parse_item(self, response):
-        processo = TjalCrawlerItem()
-        print("INPUT" + self.input_string)
         processo = self.build_processo(response)
         yield processo
 
     def get_codigo_processo(self, response):
         self.codigo_processo = response.css("#processoSelecionado ::attr(value)").get()
-        print("get_codigo_processo + URL: " + response.url)
-        print("get_codigo_processo + codigo do processo: " + self.codigo_processo)
-        yield Request(url=f'https://www2.tjal.jus.br/cposg5/show.do?processo.codigo={self.codigo_processo}', callback=self.build_processo_2_grau)
-
+        if self.codigo_processo is not None:
+            url_2_grau = f'https://esaj.tjce.jus.br/cposg5/show.do?processo.codigo={self.codigo_processo}'
+        else:
+            url_2_grau = self.start_urls[1]
+        yield Request(url=url_2_grau, callback=self.build_processo_2_grau)
 
     def build_processo(self, response):
-        print("build_processo. URL:" + response.url)
         processo = TjalCrawlerItem()
         numero_processo = response.css('[id="numeroProcesso"]::text').get().strip().replace("\n", "")
         classe = response.css('[id="classeProcesso"]::text').get()
@@ -72,7 +70,6 @@ class TjalCrawler(CrawlSpider):
         return processo
 
     def build_processo_2_grau(self, response):
-        print("build_processo. URL:" + response.url)
         processo = TjalCrawlerItem()
         numero_processo = response.css('[id="numeroProcesso"]::text').get().strip().replace("\n", "")
         classe = response.css('[id="classeProcesso"] > span::text').get()
@@ -118,18 +115,22 @@ class TjalCrawler(CrawlSpider):
         movimentacoes = {}
 
         for movimento in movimentacoes_selector:  # trs
-            data_movimentacao = movimento.css("td ::text").get()
+            data_movimentacao = movimento.css("td ::text").get().strip()
             descricao = movimento.css(":nth-child(3)::text").get().strip().replace("\n", "")
-            if descricao == "":
-                descricao = self.get_url_documento(movimento)
-            if data_movimentacao not in movimentacoes:
-                movimentacoes[data_movimentacao.strip()] = []
+            descricao = descricao + self.get_url_documento(movimento)
+            movimentacoes[data_movimentacao] = []
 
-            movimentacoes[data_movimentacao.strip()] = descricao
+            movimentacoes[data_movimentacao] = descricao
         return movimentacoes
 
     def get_url_documento(self, movimento):
         url = movimento.css(":nth-child(3) > a::text").get()
         if url is not None:
             url = url.strip().replace("\n", "").replace("\t", "")
-        return url
+            return url
+        else:
+            return ""
+
+    def closed(self, reason):
+        if reason == 'no_page_found':
+            self.crawler.stop(reason="no_page_found")

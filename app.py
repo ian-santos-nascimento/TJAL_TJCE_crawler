@@ -1,6 +1,6 @@
 import queue
 
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, Response
 from multiprocessing import Process, Queue
 from scrapy import signals
 from scrapy.crawler import CrawlerProcess
@@ -23,7 +23,8 @@ def consultar():
         data = request.get_json()  # Extract JSON data from request
         numero_processo = data['numero_processo']
         tribunal = data['tribunal']
-        processo_existe(numero_processo)
+        if not processo_existe(numero_processo):
+            return Response("Número do processo inválido!", status=400)
 
         if tribunal == 'tjal':
             p = Process(target=initilize_tjal_crawler, args=(items_queue, numero_processo))
@@ -31,7 +32,7 @@ def consultar():
             p = Process(target=initilize_tjce_crawler, args=(items_queue, numero_processo))
 
         p.start()
-        p.join()  # Wait for the process to finish
+        p.join()
 
         items = []
         while True:
@@ -68,8 +69,6 @@ def consultar():
             'error': error_message
         }), 400
 
-# ...
-
 def initilize_tjal_crawler(queue, numero_processo):
     def collect_items(item):
         queue.put(item)
@@ -90,9 +89,7 @@ def initilize_tjce_crawler(items_queue, numero_processo):
     process.crawl(crawler, input_string=numero_processo)
     process.start()
 
-# ...
-
-
 
 if __name__ == '__main__':
-    app.run()
+    app.run(host='0.0.0.0', port=5000, debug=True)
+

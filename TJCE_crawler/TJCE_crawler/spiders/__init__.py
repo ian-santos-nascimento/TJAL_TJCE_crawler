@@ -33,7 +33,10 @@ class TjceCrawler(CrawlSpider):
 
     def get_codigo_processo(self, response):
         self.codigo_processo = response.css("#processoSelecionado ::attr(value)").get()
-        url_2_grau = f'https://esaj.tjce.jus.br/cposg5/show.do?processo.codigo={self.codigo_processo}'
+        if self.codigo_processo is not None:
+            url_2_grau = f'https://esaj.tjce.jus.br/cposg5/show.do?processo.codigo={self.codigo_processo}'
+        else:
+            url_2_grau = self.start_urls[1]
         yield Request(url=url_2_grau, callback=self.build_processo_2_grau)
 
     def build_processo(self, response):
