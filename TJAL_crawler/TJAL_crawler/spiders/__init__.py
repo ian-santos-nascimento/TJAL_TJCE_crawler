@@ -37,7 +37,7 @@ class TjalCrawler(CrawlSpider):
     def get_codigo_processo(self, response):
         self.codigo_processo = response.css("#processoSelecionado ::attr(value)").get()
         if self.codigo_processo is not None:
-            url_2_grau = f'https://esaj.tjce.jus.br/cposg5/show.do?processo.codigo={self.codigo_processo}'
+            url_2_grau = f'https://www2.tjal.jus.br/cposg5/show.do?processo.codigo={self.codigo_processo}'
         else:
             url_2_grau = self.start_urls[1]
         yield Request(url=url_2_grau, callback=self.build_processo_2_grau)
@@ -115,22 +115,23 @@ class TjalCrawler(CrawlSpider):
         movimentacoes = {}
 
         for movimento in movimentacoes_selector:  # trs
-            data_movimentacao = movimento.css("td ::text").get().strip()
+            data_movimentacao = movimento.css("td ::text").get()
             descricao = movimento.css(":nth-child(3)::text").get().strip().replace("\n", "")
-            descricao = descricao + self.get_url_documento(movimento)
-            movimentacoes[data_movimentacao] = []
+            if descricao == "":
+                descricao = self.get_url_documento(movimento, response)
+            if data_movimentacao not in movimentacoes:
+                movimentacoes[data_movimentacao.strip()] = []
 
-            movimentacoes[data_movimentacao] = descricao
+            movimentacoes[data_movimentacao.strip()] = descricao
         return movimentacoes
 
-    def get_url_documento(self, movimento):
+    def get_url_documento(self, movimento, response):
         url = movimento.css(":nth-child(3) > a::text").get()
+        base_url = response.url[:24]
         if url is not None:
-            url = url.strip().replace("\n", "").replace("\t", "")
-            return url
-        else:
-            return ""
-
+            url = url.strip().replace("\n", "").replace("\t", "") + "| URL: " + base_url + movimento.css(
+                ":nth-child(3) > a::attr(href)").get()
+        return url
     def closed(self, reason):
         if reason == 'no_page_found':
             self.crawler.stop(reason="no_page_found")

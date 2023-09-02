@@ -50,6 +50,7 @@ def consultar():
                 "tribunal": item['tribunal'],
                 "area": item['area'],
                 "classeProcesso": item['classeProcesso'],
+                "assunto": item['assunto'],
                 "data_distribuicao": item['data_distribuicao'],
                 "juiz": item['juiz'],
                 "valor_acao": item['valor_acao'],
@@ -79,9 +80,9 @@ def initilize_tjal_crawler(queue, numero_processo):
     process.crawl(crawler, input_string=numero_processo)
     process.start()
 
-def initilize_tjce_crawler(items_queue, numero_processo):
+def initilize_tjce_crawler(queue, numero_processo):
     def collect_items(item):
-        items_queue.put(item)
+        queue.put(item)
 
     process = CrawlerProcess(settings=get_project_settings())
     crawler = process.create_crawler(TjceCrawler)

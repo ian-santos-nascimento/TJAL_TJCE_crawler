@@ -4,6 +4,7 @@ from ..items import TjceCrawlerItem
 from scrapy import Request
 from utils import get_tribunal
 
+
 class TjceCrawler(CrawlSpider):
     name = 'TjceCrawler'
     rules = ([
@@ -20,7 +21,10 @@ class TjceCrawler(CrawlSpider):
         self.codigo_processo = codigo_processo
         self.start_urls = [
             f'https://esaj.tjce.jus.br/cpopg/show.do?processo.foro={self.input_string[-4:]}&processo.numero={self.input_string}',
-            "https://esaj.tjce.jus.br/cposg5/search.do?conversationId=&paginaConsulta=0&cbPesquisa=NUMPROC&numeroDigitoAnoUnificado=0070337-91.2008&foroNumeroUnificado=0001&dePesquisaNuUnificado=0070337-91.2008.8.06.0001&dePesquisaNuUnificado=UNIFICADO&dePesquisa=&tipoNuProcesso=UNIFICADO"]
+            f'https://esaj.tjce.jus.br/cposg5/search.do?conversationId=&paginaConsulta=0&cbPesquisa=NUMPROC'
+            f'&numeroDigitoAnoUnificado={self.input_string[:14]}&foroNumeroUnificado='
+            f'{self.input_string[:-4]}&dePesquisaNuUnificado='
+            f'{self.input_string}&dePesquisaNuUnificado=UNIFICADO&dePesquisa=&tipoNuProcesso=UNIFICADO']
 
     custom_settings = {
         "INPUT_STRING": None
@@ -72,7 +76,7 @@ class TjceCrawler(CrawlSpider):
         numero_processo = response.css('[id="numeroProcesso"]::text').get().strip().replace("\n", "")
         classe = response.css('[id="classeProcesso"] > span::text').get()
         area = response.css('[id="areaProcesso"] > span ::text').get()
-        assunto = response.css('[id="assuntoProcesso"]::text').get()
+        assunto = response.css('[id="assuntoProcesso"] > span ::text').get()
         juiz = response.css('[id="orgaoJulgadorProcesso"] > span::text').get() if response.css(
             '[id="orgaoJulgadorProcesso"] > span::text').get() else response.css('[id="varaProcesso"] ::text').get()
         valor_acao = response.css('[id="valorAcaoProcesso"] > span::text').get()
@@ -118,8 +122,7 @@ class TjceCrawler(CrawlSpider):
             descricao = movimento.css(":nth-child(3)::text").get().strip().replace("\n", "")
             if descricao == "":
                 descricao = self.get_url_documento(movimento)
-            if data_movimentacao not in movimentacoes:
-                movimentacoes[data_movimentacao.strip()] = []
+            movimentacoes[data_movimentacao.strip()] = []
 
             movimentacoes[data_movimentacao.strip()] = descricao
         return movimentacoes
