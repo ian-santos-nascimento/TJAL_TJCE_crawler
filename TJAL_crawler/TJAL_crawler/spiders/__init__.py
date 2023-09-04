@@ -10,9 +10,7 @@ class TjalCrawler(CrawlSpider):
     rules = ([
         Rule(LinkExtractor(allow=r"cpopg/",
                            deny=["/abrirDocumentoVinculadoMovimentacao", "jsessionid", "#liberarAutoPorSenha",
-                                 '/open.do']),
-             callback='parse_item'),
-        Rule(LinkExtractor(allow=r"cposg5/search.do", deny="cposg5/show.do"), callback='get_codigo_processo')
+                                 '/open.do'])),
     ])
 
     def __init__(self, input_string=None, codigo_processo=None, *a, **kw):
@@ -26,21 +24,17 @@ class TjalCrawler(CrawlSpider):
             f'{self.input_string[:-4]}&dePesquisaNuUnificado='
             f'{self.input_string}&dePesquisaNuUnificado=UNIFICADO&dePesquisa=&tipoNuProcesso=UNIFICADO']
 
-    custom_settings = {
-        "INPUT_STRING": None
-    }
+    def start_requests(self):
+        for url in self.start_urls:
+            yield Request(url, callback=self.parse_item)
 
     def parse_item(self, response):
-        processo = self.build_processo(response)
-        yield processo
-
-    def get_codigo_processo(self, response):
         self.codigo_processo = response.css("#processoSelecionado ::attr(value)").get()
-        if self.codigo_processo is not None:
-            url_2_grau = f'https://www2.tjal.jus.br/cposg5/show.do?processo.codigo={self.codigo_processo}'
+        if response.url[25:31] == 'cposg5':
+            url_2_grau = f'https://www2.tjal.jus.br/cposg5/show.do?processo.codigo={self.codigo_processo}' if self.codigo_processo is not None else self.start_urls[1]
+            yield Request(url=url_2_grau, callback=self.build_processo_2_grau, dont_filter=True)
         else:
-            url_2_grau = self.start_urls[1]
-        yield Request(url=url_2_grau, callback=self.build_processo_2_grau)
+            yield Request(url=response.url, callback=self.build_processo, dont_filter=True)
 
     def build_processo(self, response):
         processo = TjalCrawlerItem()
@@ -74,7 +68,7 @@ class TjalCrawler(CrawlSpider):
         numero_processo = response.css('[id="numeroProcesso"]::text').get().strip().replace("\n", "")
         classe = response.css('[id="classeProcesso"] > span::text').get()
         area = response.css('[id="areaProcesso"] > span ::text').get()
-        assunto = response.css('[id="assuntoProcesso"]::text').get()
+        assunto = response.css('[id="assuntoProcesso"] > span ::text').get()
         juiz = response.css('[id="orgaoJulgadorProcesso"] > span::text').get()
         valor_acao = response.css('[id="valorAcaoProcesso"] > span::text').get()
         partes = self.build_partes_processo(response)

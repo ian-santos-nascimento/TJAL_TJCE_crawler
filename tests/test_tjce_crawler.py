@@ -13,7 +13,7 @@ class TjalCrawlerTest(TestCase):
 
     def setUp(self):
         self.crawler = get_crawler(TjceCrawler)
-        self.input_string = "0034520-06.2010.8.02.0001"
+        self.input_string = "0070337-91.2008.8.06.0001"
         self.spider = self.crawler._create_spider(input_string=self.input_string)
 
 
