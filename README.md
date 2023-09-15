@@ -44,7 +44,9 @@
 -	Performance: aqui avaliamos o tempo para crawlear todo o processo jurídico
 ------------------------------------------------------------------------------------------------------------------------------
 ## DOCUMENTAÇÃO:
-
+- Para documentação da API vá para [Link to Doc](Documentacao.md)
+- Para documentação dos crawlers vá para [Link to Doc](Crawlers.md)
+- 
 ### Para detalhes da documentação vá para o arquivo Documentacao.md
 
 #### Como foi estruturado:
