@@ -1,7 +1,6 @@
 from scrapy import Request
 from scrapy.linkextractors import LinkExtractor
 from scrapy.spiders import CrawlSpider, Rule
-from utils import get_tribunal
 from ..items import TjalCrawlerItem
 
 
@@ -50,7 +49,7 @@ class TjalCrawler(CrawlSpider):
         grau = '1º grau'
 
         processo['numero_processo'] = numero_processo if numero_processo is not None else ''
-        processo['tribunal'] = get_tribunal(response.url)
+        processo['tribunal'] = self.get_tribunal(response.url)
         processo['grau'] = grau
         processo['classeProcesso'] = classe if classe is not None else ''
         processo['area'] = area if area is not None else ''
@@ -76,7 +75,7 @@ class TjalCrawler(CrawlSpider):
         grau = '2º grau'
 
         processo['numero_processo'] = numero_processo if numero_processo is not None else ''
-        processo['tribunal'] = get_tribunal(response.url)
+        processo['tribunal'] = self.get_tribunal(response.url)
         processo['grau'] = grau
         processo['classeProcesso'] = classe if classe is not None else ''
         processo['area'] = area if area is not None else ''
@@ -126,6 +125,9 @@ class TjalCrawler(CrawlSpider):
             url = url.strip().replace("\n", "").replace("\t", "") + "| URL: " + base_url + movimento.css(
                 ":nth-child(3) > a::attr(href)").get()
         return url
+
+    def get_tribunal(self,url):
+        return url[13:17]
     def closed(self, reason):
         if reason == 'no_page_found':
             self.crawler.stop(reason="no_page_found")

@@ -9,16 +9,37 @@ from scrapy.utils.project import get_project_settings
 from TJAL_crawler.TJAL_crawler.spiders import TjalCrawler
 from TJCE_crawler.TJCE_crawler.spiders import TjceCrawler
 from utils import processo_existe
-import time
+from flasgger import Swagger
 
 app = Flask(__name__)
-
+Swagger(app)
 # ...
 
 items_queue = Queue()  # Queue to collect scraped items
-
 @app.route("/consultas/", methods=['POST'])
 def consultar():
+    """
+    Consulta processos em diferentes tribunais.
+    This endpoint allows you to initiate the crawlers.
+    ---
+    parameters:
+      - name: body
+        in: body
+        required: true
+        schema:
+          properties:
+            numero_processo:
+              type: string
+              description: Número do processo a ser consultado.
+            tribunal:
+              type: string
+              description: O tribunal onde o processo será consultado (tjal ou tjce).
+    responses:
+      200:
+        description: Fields from the process searched
+      400:
+        description: Número do processo inválido!
+    """
     try:
         data = request.get_json()  # Extract JSON data from request
         numero_processo = data['numero_processo']

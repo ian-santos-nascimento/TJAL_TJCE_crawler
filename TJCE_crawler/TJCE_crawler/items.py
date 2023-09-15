@@ -20,3 +20,4 @@ class TjceCrawlerItem(scrapy.Item):
     lista_partes_processo = Field(default=None)
     lista_movimentacoes = Field(default=None)
     grau = Field(default=None)
+

@@ -1,11 +1,13 @@
 from unittest import TestCase
-
+import requests
+import unittest
 from scrapy import signals
 from scrapy.crawler import CrawlerProcess
 from scrapy.signalmanager import dispatcher
 from scrapy.utils.project import get_project_settings
 from scrapy.utils.test import get_crawler
 
+import app
 from TJAL_crawler.TJAL_crawler.spiders import TjalCrawler
 
 
@@ -15,7 +17,6 @@ class TjalCrawlerTest(TestCase):
         self.crawler = get_crawler(TjalCrawler)
         self.input_string = "0034520-06.2010.8.02.0001"
         self.spider = self.crawler._create_spider(input_string=self.input_string)
-
 
     def test_parse_item(self):
         items = []
