@@ -43,10 +43,33 @@
 -	Escalabilidade: o quão fácil é escalar os crawlers.
 -	Performance: aqui avaliamos o tempo para crawlear todo o processo jurídico
 ------------------------------------------------------------------------------------------------------------------------------
-## How to run:
-- docker build -t api-crawler .
-- docker run --name crawler_container -p 5000:5000 api-crawler
-- URL: http://localhost:5000/consultas/ (params(body json): "numero_processo" and "tribunal")
+## DOCUMENTAÇÃO:
+
+### Para detalhes da documentação vá para o arquivo Documentacao.md
+
+#### Como foi estruturado:
+- Foi organizado com a premissa de que cada tribunal possuirá um crawler devido a diferênciação de cada site oficial
+- Os principais arquivos são: app.py(arquivo da API Flask), TJAL_crawler e TJCE_crawler(pasta que contém a configuração do projeto scrapy de cada crawler), Dockerfile(arquivo Docker para criação da imagem), tests(pasta que contém os testes)
+#### Utilização do multiprocessing.Process: 
+- Paralelismo: Usando processos separados, a aplicação consegue rodar concorrentemente. Permitindo a API receber novas chamadas enquanto processa dados.
+- Isolamento: Se o crawler encontrar um erro ou repentinamente parar, não irá afetar a aplicação. Fazendo os processos rodarem independente
+- Escalabilidade: Se necessário, pode ser escalado os crawlers para rodarem em múltiplas instâncias concorrentemente
+
+### Como rodar o projeto local:
+- Você deve possuir instalado: python
+- Crie uma pasta para a sua venv com "python -m venv venv"
+- Ative sua venv de acordo com o sistema operacional. Para Linux navegue até a pasta bin da venv e uso o comando ". activate"
+- Já dentro da venv instale os pacotes necessários com "pip install -r requirements.txt" na raiz do projeto
+- Para iniciar a api utilize o "flask run"
+
+
+### Como testar a aplicação
+- Para testar a API utilize o arquivo test_api.py. Tenha certeza que a API esteja de pé para este teste
+- Para testar os crawlers navegue até "test_jal_crawler" ou "test_tjce_crawler"
+
+### Como fazer deploy num container docker:
+- docker build -t api-crawler .  (https://docs.docker.com/engine/reference/commandline/build/)
+- docker run --name crawler_container -p 5000:5000 api_crawler (cria um container na porta 5000 de nome crawler_container com a imagem feita acima) (https://docs.docker.com/engine/reference/commandline/run/)
 
 ## Arquitetura ideal:
 - O ideal seria a implementação da API e dos crawlers isoladamente em orquertradores scrapyd. 
