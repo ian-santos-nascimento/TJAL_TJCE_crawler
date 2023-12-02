@@ -11,16 +11,25 @@ class Crawler(CrawlSpider):
                                  '/open.do'])),
     ])
 
-    def __init__(self, input_string=None, codigo_processo=None, *a, **kw):
+    def __init__(self, numero_processo=None, tribunal=None, *a, **kw):
         super().__init__(*a, **kw)
-        self.input_string = input_string
-        self.codigo_processo = codigo_processo
-        self.start_urls = [
-            f'https://www2.tjal.jus.br/cpopg/show.do?processo.foro={self.input_string[-4:]}&processo.numero={self.input_string}',
-            f'https://www2.tjal.jus.br/cposg5/search.do?conversationId=&paginaConsulta=0&cbPesquisa=NUMPROC'
-            f'&numeroDigitoAnoUnificado={self.input_string[:14]}&foroNumeroUnificado='
-            f'{self.input_string[:-4]}&dePesquisaNuUnificado='
-            f'{self.input_string}&dePesquisaNuUnificado=UNIFICADO&dePesquisa=&tipoNuProcesso=UNIFICADO']
+        self.input_string = numero_processo
+        self.tribunal = tribunal
+        self.codigo_processo = ""
+        if tribunal == 'tjal':
+            self.start_urls = [
+                f'https://www2.tjal.jus.br/cpopg/show.do?processo.foro={self.input_string[-4:]}&processo.numero={self.input_string}',
+                f'https://www2.tjal.jus.br/cposg5/search.do?conversationId=&paginaConsulta=0&cbPesquisa=NUMPROC'
+                f'&numeroDigitoAnoUnificado={self.input_string[:14]}&foroNumeroUnificado='
+                f'{self.input_string[:-4]}&dePesquisaNuUnificado='
+                f'{self.input_string}&dePesquisaNuUnificado=UNIFICADO&dePesquisa=&tipoNuProcesso=UNIFICADO']
+        else:
+            self.start_urls = [
+                f'https://esaj.tjce.jus.br/cpopg/show.do?processo.foro={self.input_string[-4:]}&processo.numero={self.input_string}',
+                f'https://esaj.tjce.jus.br/cposg5/search.do?conversationId=&paginaConsulta=0&cbPesquisa=NUMPROC'
+                f'&numeroDigitoAnoUnificado={self.input_string[:14]}&foroNumeroUnificado='
+                f'{self.input_string[:-4]}&dePesquisaNuUnificado='
+                f'{self.input_string}&dePesquisaNuUnificado=UNIFICADO&dePesquisa=&tipoNuProcesso=UNIFICADO']
 
     def start_requests(self):
         for url in self.start_urls:

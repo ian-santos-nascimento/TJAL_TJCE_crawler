@@ -18,10 +18,11 @@ scrapyd = ScrapydAPI(os.getenv('SCRAPYD_URL'))
 class ApiProcessView(APIView):
     def post(self, request):
         processo = request.data.get('processo')
+        tribunal = request.data.get('tribunal')
         if not processoExiste(processo):
-            return Response(status=HTTP_400_BAD_REQUEST)
+            return Response(data={'error':"Numero do processo inválido!"},status=HTTP_400_BAD_REQUEST)
 
-        task, unique_id = scheduleCrawler(processo)
+        task, unique_id = scheduleCrawler(processo,tribunal)
         print("task" + task)
         print("UNIQUE_ID" + unique_id)
         status = scrapyd.job_status(os.getenv('SCRAPY_PROJECT_NAME'), task)
@@ -33,7 +34,7 @@ class ApiProcessView(APIView):
         return JsonResponse(json_data, safe=False,status=HTTP_200_OK)
 
 
-def scheduleCrawler(processo):
+def scheduleCrawler(processo,tribunal):
     project_name = os.getenv('SCRAPY_PROJECT_NAME')
     crawler_name = os.getenv('CRAWLER_NAME')
     unique_id = str(uuid4())  # create a unique ID.
@@ -43,7 +44,7 @@ def scheduleCrawler(processo):
         'processo': processo
     }
     task = scrapyd.schedule(project=project_name,spider=crawler_name, settings=settings,
-                            input_string=processo)
+                            numero_processo=processo, tribunal=tribunal)
     return task, unique_id
 
 
