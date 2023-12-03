@@ -26,9 +26,6 @@
 •	partes do processo
 •	lista das movimentações (data e movimento)
 
-## Premissas: 
-- O projeto já foi feito drop em produção e já foi mapeado todos os processos até então. Sendo assim será desenvolvido com isso em mente.
-
 ## Exemplos de processos
 - 0070337-91.2008.8.06.0001 - TJCE - Até 2ª instância - Teste realizado com sucesso
 - 0004017-94.2018.8.06.0167 - TJCE - Até 2ª instância - Teste realizado com sucesso
@@ -43,27 +40,168 @@
 -	Escalabilidade: o quão fácil é escalar os crawlers.
 -	Performance: aqui avaliamos o tempo para crawlear todo o processo jurídico
 ------------------------------------------------------------------------------------------------------------------------------
-## DOCUMENTAÇÃO:
-- Para documentação da API vá para [Link to Doc](Documentacao.md)
-- Para documentação dos crawlers vá para [Link to Doc](Crawlers.md)
-- 
-### Para detalhes da documentação vá para o arquivo Documentacao.md
+## Premissas: 
+- O projeto já foi feito drop em produção e já foi mapeado todos os processos até então.
+- Todos os demais tribunais possuem o mesmo mapeamento de campos, sendo assim uma única classe de crawler funcionará para todos, mudando apenas o link de acesso
+- A máquina possui capacidade suficiente para todas as requisições feitas
 
-#### Como foi estruturado:
-- Foi organizado com a premissa de que cada tribunal possuirá um crawler devido a diferênciação de cada site oficial
-- Os principais arquivos são: app.py(arquivo da API Flask), TJAL_crawler e TJCE_crawler(pasta que contém a configuração do projeto scrapy de cada crawler), Dockerfile(arquivo Docker para criação da imagem), tests(pasta que contém os testes)
-#### Utilização do multiprocessing.Process: 
-- Paralelismo: Usando processos separados, a aplicação consegue rodar concorrentemente. Permitindo a API receber novas chamadas enquanto processa dados.
-- Isolamento: Se o crawler encontrar um erro ou repentinamente parar, não irá afetar a aplicação. Fazendo os processos rodarem independente
-- Escalabilidade: Se necessário, pode ser escalado os crawlers para rodarem em múltiplas instâncias concorrentemente
+### Como foi estruturado:
 
-### Como rodar o projeto local:
-- Você deve possuir instalado: python
-- Crie uma pasta para a sua venv com "python -m venv venv"
-- Ative sua venv de acordo com o sistema operacional. Para Linux navegue até a pasta bin da venv e uso o comando ". activate"
-- Já dentro da venv instale os pacotes necessários com "pip install -r requirements.txt" na raiz do projeto
-- Para iniciar a api utilize o "flask run"
+![alt text](Drawing.jpeg)
 
+1. Comandos pra subir o projeto:
+
+scrapyd
+scrapyd-deploy default
+python manage.py migrate
+python manage.py runserver
+
+2. Endpoints da API 
+
+api
+    
+    URL: /api/
+    Método: POST
+    Descrição: Inicia um processo de crawler no site do tribunal escolhido para coletar informações sobre um processo até 2 grau.
+    Parâmetros da Requisição:
+        numero_processo (string, obrigatório): O número do processo a ser pesquisado.
+        tribunal (string, obrigatório): O tribunal para coletar dados (pode ser 'tjal' ou 'tjce').
+
+3. Formato de Requisições e Respostas:
+- Formato de Requisição
+
+
+    URL: /api/
+    Método: POST
+    Corpo da Requisição:
+    json
+    {
+        "numero_processo": "string",
+        "tribunal": "string"
+    }
+
+Formato de Resposta
+    Resposta de Sucesso (200 OK):
+    json
+
+    [
+    {
+        "numero_processo": "string",
+        "tribunal": "string",
+        "area": "string",
+        "classeProcesso": "string",
+        "assunto": "string",
+        "data_distribuicao": "string",
+        "juiz": "string",
+        "valor_acao": "string",
+        "lista_partes_processo": [],
+        "lista_movimentacoes": [],
+        "grau": "string"
+    }
+    ]
+
+Resposta de Erro (400 Bad Request):
+
+
+    {
+        "error": "string"
+    }
+
+4. Exemplos de Uso
+Exemplo 1: Solicitar Informações sobre um processo
+
+
+
+    Requisição:
+    http
+    
+    POST /api/
+    Content-Type: application/json
+    
+    {
+        "numero_processo": "123456789",
+        "tribunal": "tjal"
+    }
+
+Resposta (Sucesso):
+
+    [
+      {
+        "area": "Cívil",
+        "assunto": "Energia Elétrica",
+        "classeProcesso": "Procedimento Comum",
+        "data_distribuicao": "29/04/2010",
+        "grau": "1 grau",
+        "juiz": "Marcelo Guimarães de Aguiar",
+        "lista_movimentacoes": {
+          "01/04/2014": "Recebidos os autos",
+          "01/06/2015": "Conclusos",
+          "02/12/2015": "Visto em correi\u00e7\u00e3o| URL: https://www2.tjal.jus.br/cpopg/abrirDocumentoVinculadoMovimentacao.do?processo.codigo=01000BJE00000&cdDocumento=16036154&nmRecursoAcessado=Visto+em+correi%C3%A7%C3%A3o",
+          "03/02/2011": "Decurso de Prazo",
+          "03/09/2018": "Visto em correi\u00e7\u00e3o| URL: https://www2.tjal.jus.br/cpopg/abrirDocumentoVinculadoMovimentacao.do?processo.codigo=01000BJE00000&cdDocumento=25548520&nmRecursoAcessado=Visto+em+correi%C3%A7%C3%A3o",
+          "05/01/2022": "Conclusos",
+          "05/08/2011": "Mandado Expedido| URL: https://www2.tjal.jus.br#liberarAutoPorSenha",
+          "05/09/2011": "Juntada de Peti\u00e7\u00e3o",
+          "06/02/2012": "Certid\u00e3o",
+          "06/04/2016": "Despacho de Mero Expediente| URL: https://www2.tjal.jus.br/cpopg/abrirDocumentoVinculadoMovimentacao.do?processo.codigo=01000BJE00000&cdDocumento=16778244&nmRecursoAcessado=Despacho+de+Mero+Expediente",
+          "06/05/2013": "Juntada de Peti\u00e7\u00e3o",
+          "06/06/2016": "Juntada de Peti\u00e7\u00e3o",
+          "06/08/2021": "Visto em Correi\u00e7\u00e3o - CGJ| URL: https://www2.tjal.jus.br/cpopg/abrirDocumentoVinculadoMovimentacao.do?processo.codigo=01000BJE00000&cdDocumento=39288180&nmRecursoAcessado=Visto+em+Correi%C3%A7%C3%A3o+-+CGJ",
+          "07/04/2016": "Audi\u00eancia Designada",
+          "08/02/2012": "Despacho de Mero Expediente| URL: https://www2.tjal.jus.br/cpopg/abrirDocumentoVinculadoMovimentacao.do?processo.codigo=01000BJE00000&cdDocumento=7010594&nmRecursoAcessado=Despacho+de+Mero+Expediente",
+          "08/04/2016": "Disponibiliza\u00e7\u00e3o no Di\u00e1rio da Justi\u00e7a Eletr\u00f4nico",
+          "09/11/2011": "Ato ordinat\u00f3rio praticado| URL: https://www2.tjal.jus.br#liberarAutoPorSenha",
+          "11/03/2013": "Despacho de Mero Expediente| URL: https://www2.tjal.jus.br/cpopg/abrirDocumentoVinculadoMovimentacao.do?processo.codigo=01000BJE00000&cdDocumento=9344053&nmRecursoAcessado=Despacho+de+Mero+Expediente",
+          ...
+    },
+        "lista_partes_processo": {
+          "Autor": [
+            "Maia Hamburgueria e Choperia Ltda - ME",
+            "Advogado:",
+            "Vagner Paes Cavalcanti Filho",
+            "Advogado:",
+            "Gustavo Ten\u00f3rio Accioly",
+            "Representa:",
+            "Francisco Edilson Maia da Costa"
+          ],
+          "Réu": [
+            "Companhia Energ\u00e9tica de Alagoas - CEAL",
+            "Advogado:",
+            "Danielle Ten\u00f3rio Toledo Cavalcante"
+          ]
+        },
+        "numero_processo": "0034520-06.2010.8.02.0001",
+        "tribunal": "tjal",
+        "valor_acao": "R$510,00"
+      }
+    ]
+
+
+Resposta (Erro):
+json
+
+    {
+        "error": "Número do processo inválido!"
+    }
+
+5. Estrutura do Projeto
+
+O projeto está estruturado da seguinte forma:
+
+    API: 
+      Aplicação Django criando uma api com djangorestframework
+      Rota /api/: Definição da rota principal para iniciar solicitações de raspagem.
+    Crawlers:
+      Crawler único para os dois tribunais devido a premissa de que todos os tribunais terão o mesmo modelo de campos
+      Crawler disponível em crawler/crawler/spiders/courts_crawler.py
+    Scrapyd:
+      Scrapyd é usado como um job para isolar o crawler devido a sua indepedência do ciclo de vida.
+      Também é pensado para que possa ser ativado diversos crawlers, sendo independetes, possuem alta escalabilidade
+    Banco de dados:
+      O banco de dados utilizado foi o PostgreSQL devido sua estabilidade e rápido tempo de resposta, extremamente necessário para o contexto do projeto
+      Outra possibilidade seria a utilização de bancos NO-SQL como MongoDB devido a imprevisibilidade dos dados vindos do crawler. Entretanto em compração com tempo de resposta, o PostgreSQL ganha na performance com Indexing. "strategies include B-tree, multicolumn, expressions, and partial, as well as advanced indexing techniques such as GiST, SP-Gist, KNN Gist, GIN, BRIN, covering indexes, and bloom filters."
+Pra mais especificações dos crawlers visite: https://docs.scrapy.org/en/latest/topics/architecture.html
+![alt text](https://docs.scrapy.org/en/latest/_images/scrapy_architecture_02.png)
 
 ### Como testar a aplicação
 - Para testar a API utilize o arquivo test_api.py. Tenha certeza que a API esteja de pé para este teste
@@ -71,20 +209,19 @@
 
 ### Como fazer deploy num container docker:
 - docker build -t api-crawler .  (https://docs.docker.com/engine/reference/commandline/build/)
-- docker run --name crawler_container -p 5000:5000 api_crawler (cria um container na porta 5000 de nome crawler_container com a imagem feita acima) (https://docs.docker.com/engine/reference/commandline/run/)
+- docker run --name crawler_container -p 5000:5000 api_crawler (cria um container na porta 8000 de nome crawler_container com a imagem feita acima) (https://docs.docker.com/engine/reference/commandline/run/)
 
-## Arquitetura ideal:
+## Arquitetura ideal: (Ideia implementada nessa versão)
 - O ideal seria a implementação da API e dos crawlers isoladamente em orquertradores scrapyd. 
 - Fazendo com que a API ativasse o crawler no container scrapyd, ao finalizar o crwaler o pipeline faria inserção no BD e um listener na API aguardaria a finalização e buscasse o dado no BD
-- Entretando acabei "descobrindo" essa arquitetura de forma tardia, já com essa implementação. Caso seja da vontade de todos e possibilitarem um tempo maior, consigo implementar essa ideia
+- Com isso o crawler fica isolado, o job é respnsável por ele e existe uma enorme facilidade de escalabilidade do projeto
 
 ## Limitações:
 - Caso ocorra um erro ao executar o crawler, ele retorna um status OK com [] ao invés de 500
 - Ao pesquisar um processo, se não existir ele ainda tenta fazer um crawl
 
-## Observações e melhorias:
-- Pode ser feito uma integração com um BD, que antes de acionar o crawler ele pesquisa na tabela o processo, e caso não existe ele executa o crawler, retorna pra o usuário e salva na tabela(com pipeline).
-- Fazer um schedule no GCP para rodar um script que faça um crawler salvar os processos do dia na tabela
-- Para escalabilidade penso em microserviços de cada crawler, pois caso existe alguma alteração que derrube o crawler de um TJ ele não afete o uso dos demais.
 
-### Foi-se organizado o código com a premissa de que: Tribunais podem possuir sites diferentes, sendo o ideal então implementar um crawler pra cada TJ
+## Observações e melhorias:
+- Fazer um schedule no GCP para rodar um script que faça um crawler salvar os processos do dia na tabela
+- Para escalabilidade penso na criação de vários módulos da api, implementada junto com um LoadBalancer. Onde cada módulo poderá realizar a inicialização de diversos crawlers sem atrapalharem outros
+- Pode-se também dependendo do dado e da necessidade, utilizar diferentes BD para cada módulo.
