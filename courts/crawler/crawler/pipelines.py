@@ -25,7 +25,6 @@ class CrawlerPipeline:
     async def process_item(self, item, spider):
         self.item = item
         json_string = json.dumps(self.item)
-        # Decode the JSON string to remove escape characters
         decoded_data = json.loads(json_string)
         my_model_instance = Processo(
             numero_processo=self.processo,

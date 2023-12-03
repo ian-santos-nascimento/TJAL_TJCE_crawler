@@ -52,8 +52,7 @@ def returnItemFromDb(processo):
     items = Processo.objects.filter(numero_processo=processo)
     if items.exists():
         serialized_data = list(items.values())
-        json_data = json.dumps(serialized_data, cls=DjangoJSONEncoder)
-        return json_data
+        return serialized_data
     else:
         return None
 
