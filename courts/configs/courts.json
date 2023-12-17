@@ -1,0 +1,50 @@
+{
+  "tjal": [
+    {
+      "base_url": "https://www2.tjal.jus.br/cpopg/show.do?processo.foro={foro}&processo.numero={numero}",
+      "dynamic_values": {
+        "foro": "{foro_value}",
+        "numero": "{numero_value}"
+      }
+    },
+    {
+      "base_url": "https://www2.tjal.jus.br/cposg5/search.do?conversationId=&paginaConsulta=0&cbPesquisa=NUMPROC&numeroDigitoAnoUnificado={numero_unificado_value}&foroNumeroUnificado={foro}&dePesquisaNuUnificado={numero}&dePesquisaNuUnificado=UNIFICADO&dePesquisa=&tipoNuProcesso=UNIFICADO",
+      "dynamic_values": {
+        "numero_unificado_value": "{numero_unificado_value}",
+        "foro": "{foro}",
+        "numero": "{numero_value}"
+      }
+    },
+    {
+      "base_url": "https://www2.tjal.jus.br/cposg5/show.do?processo.codigo=numero_value",
+      "dynamic_values": {
+        "foro": "{foro_value}",
+        "numero": "{numero_value}"
+      }
+    }
+  ],
+  "tjce": [
+    {
+      "base_url": "https://esaj.tjce.jus.br/cpopg/show.do?processo.foro={foro}&processo.numero={numero}",
+      "dynamic_values": {
+        "foro": "{foro_value}",
+        "numero": "{numero_value}"
+      }
+    },
+    {
+      "base_url": "https://esaj.tjce.jus.br/cposg5/search.do?conversationId=&paginaConsulta=0&cbPesquisa=NUMPROC&numeroDigitoAnoUnificado={numero_unificado_value}&foroNumeroUnificado={foro}&dePesquisaNuUnificado={numero}&dePesquisaNuUnificado=UNIFICADO&dePesquisa=&tipoNuProcesso=UNIFICADO",
+      "dynamic_values": {
+        "numero_unificado": "{numero_unificado_value}",
+        "foro": "{foro}",
+        "numero": "{numero_value}"
+      }
+    },
+    {
+      "base_url": "https://esaj.tjce.jus.br/cposg5/show.do?processo.codigo=numero_value",
+      "dynamic_values": {
+        "foro": "{foro_value}",
+        "numero": "{numero_value}"
+      }
+    }
+  ]
+}
