@@ -178,10 +178,16 @@ Resposta (Sucesso):
 
 
 Resposta (Erro):
-json
+json para número do processo inválido
 
     {
         "error": "Número do processo inválido!"
+    }
+
+Json para tribunal não suportado pela API
+    
+    {
+        "error": "Api não possui suporte para esse tribunal"
     }
 
 5. Estrutura do Projeto
@@ -203,14 +209,11 @@ O projeto está estruturado da seguinte forma:
 Pra mais especificações dos crawlers visite: https://docs.scrapy.org/en/latest/topics/architecture.html
 ![alt text](https://docs.scrapy.org/en/latest/_images/scrapy_architecture_02.png)
 
-### Como testar a aplicação
-- Para testar a API utilize o arquivo test_api.py. Tenha certeza que a API esteja de pé para este teste
-- Para testar os crawlers navegue até "test_jal_crawler" ou "test_tjce_crawler"
-
-### Como fazer deploy num container docker:
-- docker build -t api-crawler .  (https://docs.docker.com/engine/reference/commandline/build/)
-- docker run --name crawler_container -p 5000:5000 api_crawler (cria um container na porta 8000 de nome crawler_container com a imagem feita acima) (https://docs.docker.com/engine/reference/commandline/run/)
-
+### Como subir e testar a aplicação
+- Dentro da pasta courts, aonde está o docker-compose.yml utilize o comando "docker-compose up" para inicializar os três containers
+- O container "web" responsável pela API está configurado para aceitar 127.0.0.1 na porta 9000, como http://127.0.0.1:9000/. Para utilizar os endpoints vá para o tópico 2
+- Observe que no serviço do crawler já faz deploy do crawler pelo script e subida do scrapyd
+- Para ter certeza que o scrapyd está de pé, verifique o http://127.0.0.1:6800/
 ## Arquitetura ideal: (Ideia implementada nessa versão)
 - O ideal seria a implementação da API e dos crawlers isoladamente em orquertradores scrapyd. 
 - Fazendo com que a API ativasse o crawler no container scrapyd, ao finalizar o crwaler o pipeline faria inserção no BD e um listener na API aguardaria a finalização e buscasse o dado no BD
@@ -222,6 +225,7 @@ Pra mais especificações dos crawlers visite: https://docs.scrapy.org/en/latest
 
 
 ## Observações e melhorias:
+- Utilizar um bucket S3 para armazenar os dados do crawler ao invés do BD dentro do docker
 - Fazer um schedule no GCP para rodar um script que faça um crawler salvar os processos do dia na tabela
 - Para escalabilidade penso na criação de vários módulos da api, implementada junto com um LoadBalancer. Onde cada módulo poderá realizar a inicialização de diversos crawlers sem atrapalharem outros
 - Pode-se também dependendo do dado e da necessidade, utilizar diferentes BD para cada módulo.

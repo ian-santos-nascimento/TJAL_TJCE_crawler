@@ -9,8 +9,8 @@ django.setup()
 
 BOT_NAME = "crawler"
 
-SPIDER_MODULES = ["crawler.crawler.spiders"]
-NEWSPIDER_MODULE = "crawler.crawler.spiders"
+SPIDER_MODULES = ["crawler.spiders"]
+NEWSPIDER_MODULE = "crawler.spiders"
 
 ROBOTSTXT_OBEY = False
 
@@ -25,8 +25,9 @@ ROBOTSTXT_OBEY = False
 # }
 
 ITEM_PIPELINES = {
-    "crawler.crawler.pipelines.CrawlerPipeline": 300,
+    "crawler.pipelines.CrawlerPipeline": 300,
 }
+LOG_LEVEL = "WARNING"
 # Set settings whose default value is deprecated to a future-proof value
 REQUEST_FINGERPRINTER_IMPLEMENTATION = "2.7"
 TWISTED_REACTOR = "twisted.internet.asyncioreactor.AsyncioSelectorReactor"

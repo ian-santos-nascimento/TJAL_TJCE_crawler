@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "9000:8000"
+    depends_on:
+      - db
+      - crawler
+    environment:
+      - DATABASE_URL=postgres://postgres:900505@db:5432/courts
+    command: >
+      sh -c "python manage.py makemigrations &&
+             python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:8000"
+  crawler:
+    build:
+      context: .
+      dockerfile: crawler/Dockerfile
+    ports:
+      - "6800:6800"
+    depends_on:
+      - db
+    command: >
+      sh -c "cd crawler && scrapyd & sleep 5 && cd /crawler/crawler/ && scrapyd-deploy default && tail -f /dev/null"
+
+  db:
+    image: postgres
+    environment:
+      - POSTGRES_DB=courts
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=900505
+    ports:
+      - "5433:5432"

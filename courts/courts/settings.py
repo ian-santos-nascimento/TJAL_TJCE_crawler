@@ -8,7 +8,7 @@ SECRET_KEY = 'django-insecure-a!k58k(r5g%pu5%v4$4rbp4b8cf&-(7%5tqh+qk8_ky+8(is4&
 
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '[::1]']
 
 DATABASES = {
     'default': {
@@ -16,7 +16,7 @@ DATABASES = {
         'NAME': 'courts',
         'USER': 'postgres',
         'PASSWORD': '900505',
-        'HOST': 'localhost',
+        'HOST': 'db',
         'PORT': '5432',
     }
 }
