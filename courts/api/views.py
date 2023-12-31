@@ -22,14 +22,13 @@ class ApiProcessView(APIView):
         tribunal = request.data.get('tribunal')
         if not processExists(processo):
             return Response(data={'error': "Numero do processo inválido!"}, status=HTTP_400_BAD_REQUEST)
+        url_courts = urlsForCourt(tribunal, processo)
+        if not url_courts:
+            return Response(data={'error': "Api não possui suporte para esse tribunal"}, status=HTTP_400_BAD_REQUEST)
 
         json_data = returnItemFromDb(processo)
         if json_data:
             return JsonResponse(json_data, safe=False, status=HTTP_200_OK)
-
-        url_courts = urlsForCourt(tribunal, processo)
-        if not url_courts:
-            return Response(data={'error': "Api não possui suporte para esse tribunal"}, status=HTTP_400_BAD_REQUEST)
 
         task, unique_id = scheduleCrawler(processo, tribunal,url_courts)
         status = scrapyd.job_status(os.getenv('SCRAPY_PROJECT_NAME'), task)
