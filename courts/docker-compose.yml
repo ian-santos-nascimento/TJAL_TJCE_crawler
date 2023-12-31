@@ -35,3 +35,5 @@ services:
       - POSTGRES_PASSWORD=900505
     ports:
       - "5433:5432"
+    volumes:
+      - ./configs/pg_hba.conf:/etc/postgresql/pg_hba.conf

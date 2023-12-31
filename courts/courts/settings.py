@@ -16,9 +16,26 @@ DATABASES = {
         'NAME': 'courts',
         'USER': 'postgres',
         'PASSWORD': '900505',
-        'HOST': 'db',
-        'PORT': '5432',
+        'HOST': 'db', #localhost for test
+        'PORT': '5432', #5433 for test,
+        'TEST': {
+            'DEPENDENCIES': [],
+                },
+    },
+    'test': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'courts',
+        'USER': 'postgres',
+        'PASSWORD': '900505',
+        'HOST': 'localhost',
+        'PORT': '5433',
+        'TEST': {
+            'DEPENDENCIES': [],
+                },
     }
+}
+TEST = {
+
 }
 
 INSTALLED_APPS = [
